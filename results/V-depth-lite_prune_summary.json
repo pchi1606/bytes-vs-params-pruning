@@ -1,0 +1,20 @@
+{
+ "variant": "V-depth-lite",
+ "P0": 3212749824,
+ "P1": 2413710336,
+ "removed_frac": 0.24870890413906066,
+ "plan": {
+  "removed_layers": [
+   20,
+   21,
+   22,
+   23
+  ],
+  "keep_kv": 8,
+  "keep_inter": 6400,
+  "removed_params": 799039488,
+  "final_params": 2413710336,
+  "removed_frac": 0.24870890413906066
+ },
+ "per_layer": null
+}

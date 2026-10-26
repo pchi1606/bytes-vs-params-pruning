@@ -1,0 +1,688 @@
+{
+ "version": 1,
+ "scope": "all pair_block (funding + repair) reps in results/stage1_measurements.jsonl",
+ "jsonl_md5_at_build": "4c953d67b33da0ff2687584dfd41b5b2",
+ "rule": "G1 (Round 4 supplement): a valid D1 block = exactly one V-width and one V-mixed rep from the same uninterrupted, temporally adjacent, fresh-process attempt; restart-split or incomplete attempts contribute zero valid pairs; supersession is by attempt identity in this manifest, never silent last-wins.",
+ "lost_attempts": [
+  {
+   "cap": 2,
+   "ctx": 8192,
+   "pair_block": 2,
+   "note": "first attempt interrupted by VM restart #2 (~07:34 UTC 2026-10-25) while its first member (V-width, per the prescribed randomised order) was in flight; no rep banked. The banked pair is the subsequent attempt."
+  }
+ ],
+ "attempt_accounting": {
+  "valid": 17,
+  "invalid_restart_split": 3,
+  "incomplete_superseded": 5,
+  "incomplete_pending": 0,
+  "repaired_valid": 3,
+  "lost_interrupted": 1
+ },
+ "blocks": [
+  {
+   "cap": 2,
+   "ctx": 8192,
+   "pair_block": 0,
+   "attempts": [
+    {
+     "attempt_id": "f2-8192-b0-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 207,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.423828125
+      },
+      {
+       "row_id": 209,
+       "variant": "V-width",
+       "cpu_per_token": 0.433984375
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f2-8192-b0-orig",
+   "pair": {
+    "V-mixed": 0.423828125,
+    "V-width": 0.433984375
+   }
+  },
+  {
+   "cap": 2,
+   "ctx": 8192,
+   "pair_block": 1,
+   "attempts": [
+    {
+     "attempt_id": "f2-8192-b1-orig",
+     "status": "invalid_restart_split",
+     "members": [
+      {
+       "row_id": 211,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.617578125
+      },
+      {
+       "row_id": 214,
+       "variant": "V-width",
+       "cpu_per_token": 2.327734375
+      }
+     ]
+    },
+    {
+     "attempt_id": "f2-8192-b1-repair1",
+     "status": "incomplete_superseded",
+     "members": [
+      {
+       "row_id": 296,
+       "variant": "V-width",
+       "cpu_per_token": 0.413828125
+      }
+     ]
+    },
+    {
+     "attempt_id": "f2-8192-b1-repair2",
+     "status": "repaired_valid",
+     "members": [
+      {
+       "row_id": 299,
+       "variant": "V-width",
+       "cpu_per_token": 0.387734375
+      },
+      {
+       "row_id": 301,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.339609375
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f2-8192-b1-repair2",
+   "pair": {
+    "V-width": 0.387734375,
+    "V-mixed": 0.339609375
+   }
+  },
+  {
+   "cap": 2,
+   "ctx": 8192,
+   "pair_block": 2,
+   "attempts": [
+    {
+     "attempt_id": "f2-8192-b2-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 217,
+       "variant": "V-width",
+       "cpu_per_token": 0.3846875
+      },
+      {
+       "row_id": 219,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.34578125
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f2-8192-b2-orig",
+   "pair": {
+    "V-width": 0.3846875,
+    "V-mixed": 0.34578125
+   }
+  },
+  {
+   "cap": 2,
+   "ctx": 8192,
+   "pair_block": 3,
+   "attempts": [
+    {
+     "attempt_id": "f2-8192-b3-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 221,
+       "variant": "V-width",
+       "cpu_per_token": 0.42015625
+      },
+      {
+       "row_id": 223,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.42953125
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f2-8192-b3-orig",
+   "pair": {
+    "V-width": 0.42015625,
+    "V-mixed": 0.42953125
+   }
+  },
+  {
+   "cap": 2,
+   "ctx": 8192,
+   "pair_block": 4,
+   "attempts": [
+    {
+     "attempt_id": "f2-8192-b4-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 225,
+       "variant": "V-width",
+       "cpu_per_token": 0.408515625
+      },
+      {
+       "row_id": 227,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.336640625
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f2-8192-b4-orig",
+   "pair": {
+    "V-width": 0.408515625,
+    "V-mixed": 0.336640625
+   }
+  },
+  {
+   "cap": 2,
+   "ctx": 16384,
+   "pair_block": 0,
+   "attempts": [
+    {
+     "attempt_id": "f2-16384-b0-orig",
+     "status": "invalid_restart_split",
+     "members": [
+      {
+       "row_id": 229,
+       "variant": "V-width",
+       "cpu_per_token": 0.631875
+      },
+      {
+       "row_id": 231,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.6115625
+      }
+     ]
+    },
+    {
+     "attempt_id": "f2-16384-b0-repair1",
+     "status": "repaired_valid",
+     "members": [
+      {
+       "row_id": 303,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.691640625
+      },
+      {
+       "row_id": 305,
+       "variant": "V-width",
+       "cpu_per_token": 0.72453125
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f2-16384-b0-repair1",
+   "pair": {
+    "V-mixed": 0.691640625,
+    "V-width": 0.72453125
+   }
+  },
+  {
+   "cap": 2,
+   "ctx": 16384,
+   "pair_block": 1,
+   "attempts": [
+    {
+     "attempt_id": "f2-16384-b1-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 233,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.649921875
+      },
+      {
+       "row_id": 235,
+       "variant": "V-width",
+       "cpu_per_token": 0.6415625
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f2-16384-b1-orig",
+   "pair": {
+    "V-mixed": 0.649921875,
+    "V-width": 0.6415625
+   }
+  },
+  {
+   "cap": 2,
+   "ctx": 16384,
+   "pair_block": 2,
+   "attempts": [
+    {
+     "attempt_id": "f2-16384-b2-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 237,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.6646875
+      },
+      {
+       "row_id": 239,
+       "variant": "V-width",
+       "cpu_per_token": 0.6490625
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f2-16384-b2-orig",
+   "pair": {
+    "V-mixed": 0.6646875,
+    "V-width": 0.6490625
+   }
+  },
+  {
+   "cap": 2,
+   "ctx": 16384,
+   "pair_block": 3,
+   "attempts": [
+    {
+     "attempt_id": "f2-16384-b3-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 241,
+       "variant": "V-width",
+       "cpu_per_token": 0.680234375
+      },
+      {
+       "row_id": 243,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.69046875
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f2-16384-b3-orig",
+   "pair": {
+    "V-width": 0.680234375,
+    "V-mixed": 0.69046875
+   }
+  },
+  {
+   "cap": 2,
+   "ctx": 16384,
+   "pair_block": 4,
+   "attempts": [
+    {
+     "attempt_id": "f2-16384-b4-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 245,
+       "variant": "V-width",
+       "cpu_per_token": 0.668515625
+      },
+      {
+       "row_id": 247,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.620703125
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f2-16384-b4-orig",
+   "pair": {
+    "V-width": 0.668515625,
+    "V-mixed": 0.620703125
+   }
+  },
+  {
+   "cap": 4,
+   "ctx": 8192,
+   "pair_block": 0,
+   "attempts": [
+    {
+     "attempt_id": "f4-8192-b0-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 249,
+       "variant": "V-width",
+       "cpu_per_token": 0.37109375
+      },
+      {
+       "row_id": 251,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.30640625
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f4-8192-b0-orig",
+   "pair": {
+    "V-width": 0.37109375,
+    "V-mixed": 0.30640625
+   }
+  },
+  {
+   "cap": 4,
+   "ctx": 8192,
+   "pair_block": 1,
+   "attempts": [
+    {
+     "attempt_id": "f4-8192-b1-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 253,
+       "variant": "V-width",
+       "cpu_per_token": 0.374140625
+      },
+      {
+       "row_id": 255,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.3059375
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f4-8192-b1-orig",
+   "pair": {
+    "V-width": 0.374140625,
+    "V-mixed": 0.3059375
+   }
+  },
+  {
+   "cap": 4,
+   "ctx": 8192,
+   "pair_block": 2,
+   "attempts": [
+    {
+     "attempt_id": "f4-8192-b2-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 257,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.312578125
+      },
+      {
+       "row_id": 259,
+       "variant": "V-width",
+       "cpu_per_token": 0.3771875
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f4-8192-b2-orig",
+   "pair": {
+    "V-mixed": 0.312578125,
+    "V-width": 0.3771875
+   }
+  },
+  {
+   "cap": 4,
+   "ctx": 8192,
+   "pair_block": 3,
+   "attempts": [
+    {
+     "attempt_id": "f4-8192-b3-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 261,
+       "variant": "V-width",
+       "cpu_per_token": 0.393515625
+      },
+      {
+       "row_id": 263,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.309609375
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f4-8192-b3-orig",
+   "pair": {
+    "V-width": 0.393515625,
+    "V-mixed": 0.309609375
+   }
+  },
+  {
+   "cap": 4,
+   "ctx": 8192,
+   "pair_block": 4,
+   "attempts": [
+    {
+     "attempt_id": "f4-8192-b4-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 265,
+       "variant": "V-width",
+       "cpu_per_token": 0.376796875
+      },
+      {
+       "row_id": 267,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.314140625
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f4-8192-b4-orig",
+   "pair": {
+    "V-width": 0.376796875,
+    "V-mixed": 0.314140625
+   }
+  },
+  {
+   "cap": 4,
+   "ctx": 16384,
+   "pair_block": 0,
+   "attempts": [
+    {
+     "attempt_id": "f4-16384-b0-orig",
+     "status": "invalid_restart_split",
+     "members": [
+      {
+       "row_id": 269,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.536328125
+      },
+      {
+       "row_id": 271,
+       "variant": "V-width",
+       "cpu_per_token": 1.400546875
+      }
+     ]
+    },
+    {
+     "attempt_id": "f4-16384-b0-repair1",
+     "status": "incomplete_superseded",
+     "members": [
+      {
+       "row_id": 307,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.55328125
+      }
+     ]
+    },
+    {
+     "attempt_id": "f4-16384-b0-repair2",
+     "status": "repaired_valid",
+     "members": [
+      {
+       "row_id": 309,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.55359375
+      },
+      {
+       "row_id": 311,
+       "variant": "V-width",
+       "cpu_per_token": 0.6171875
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f4-16384-b0-repair2",
+   "pair": {
+    "V-mixed": 0.55359375,
+    "V-width": 0.6171875
+   }
+  },
+  {
+   "cap": 4,
+   "ctx": 16384,
+   "pair_block": 1,
+   "attempts": [
+    {
+     "attempt_id": "f4-16384-b1-orig",
+     "status": "incomplete_superseded",
+     "members": [
+      {
+       "row_id": 273,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.801796875
+      }
+     ]
+    },
+    {
+     "attempt_id": "f4-16384-b1-redo1",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 275,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.767578125
+      },
+      {
+       "row_id": 277,
+       "variant": "V-width",
+       "cpu_per_token": 1.432265625
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f4-16384-b1-redo1",
+   "pair": {
+    "V-mixed": 0.767578125,
+    "V-width": 1.432265625
+   }
+  },
+  {
+   "cap": 4,
+   "ctx": 16384,
+   "pair_block": 2,
+   "attempts": [
+    {
+     "attempt_id": "f4-16384-b2-orig",
+     "status": "incomplete_superseded",
+     "members": [
+      {
+       "row_id": 279,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.760546875
+      }
+     ]
+    },
+    {
+     "attempt_id": "f4-16384-b2-redo1",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 281,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.572265625
+      },
+      {
+       "row_id": 283,
+       "variant": "V-width",
+       "cpu_per_token": 0.616171875
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f4-16384-b2-redo1",
+   "pair": {
+    "V-mixed": 0.572265625,
+    "V-width": 0.616171875
+   }
+  },
+  {
+   "cap": 4,
+   "ctx": 16384,
+   "pair_block": 3,
+   "attempts": [
+    {
+     "attempt_id": "f4-16384-b3-orig",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 285,
+       "variant": "V-width",
+       "cpu_per_token": 0.623828125
+      },
+      {
+       "row_id": 287,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.5515625
+      }
+     ]
+    }
+   ],
+   "retained_attempt": "f4-16384-b3-orig",
+   "pair": {
+    "V-width": 0.623828125,
+    "V-mixed": 0.5515625
+   }
+  },
+  {
+   "cap": 4,
+   "ctx": 16384,
+   "pair_block": 4,
+   "attempts": [
+    {
+     "attempt_id": "f4-16384-b4-orig",
+     "status": "incomplete_superseded",
+     "members": [
+      {
+       "row_id": 290,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.57484375
+      }
+     ]
+    },
+    {
+     "attempt_id": "f4-16384-b4-a2",
+     "status": "valid",
+     "members": [
+      {
+       "row_id": 292,
+       "variant": "V-mixed",
+       "cpu_per_token": 0.57625
+      },
+      {
+       "row_id": 294,
+       "variant": "V-width",
+       "cpu_per_token": 0.624921875
+      }
+     ],
+     "note": "MERGED split tags f4-16384-b4-a2 + f4-16384-b4-a3: one uninterrupted adjacent attempt whose records carry two attempt tags due to a coordinator driver bug (attempt id recomputed per variant; fixed 2026-10-25). Adjacency evidence (H2): JSONL rows 291-294 are prime(a2) -> rep V-mixed 0.5763 (a2) -> prime(a3) -> rep V-width 0.6249 (a3), consecutive with no intervening record, inside the single driver run pid 9737 (relaunched 18:44 UTC, stopped by the coordinator ~19:10 UTC; VM restart #9 came later, ~19:38 UTC, under the next driver). Corroborated by the consecutive driver-log rep lines preserved verbatim in STAGE1-RUN-STATUS.md."
+    }
+   ],
+   "retained_attempt": "f4-16384-b4-a2",
+   "pair": {
+    "V-mixed": 0.57625,
+    "V-width": 0.624921875
+   }
+  }
+ ]
+}

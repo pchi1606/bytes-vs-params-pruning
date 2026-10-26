@@ -1,0 +1,42 @@
+{
+ "V-width": {
+  "agreement": 0.0,
+  "n_compared": 32,
+  "gguf_text": "In terms of a busy schedule, the city is still experiencing a period of growth, where the inhabitants are still trying to recover from a long, dark spell."
+ },
+ "V-depth": {
+  "agreement": 0.03125,
+  "n_compared": 32,
+  "gguf_text": "The history of the Roman Empire indeed spans over centuries, and it can be divided into three periods: the Roman Volumny, the Roman Republic and, finally"
+ },
+ "V-depth-lite": {
+  "agreement": 0.05263157894736842,
+  "n_compared": 19,
+  "gguf_text": "The history of the Roman Empire, spanning many centuries, is a complex and multifous topic."
+ },
+ "V-depth-alt": {
+  "agreement": 0.0625,
+  "n_compared": 32,
+  "gguf_text": "The Roman Empire was a vast and powerful empire that controlled a vast portion of the Mediterranean region, including the entire Mediterranean Sea, at the time of the Roman Republic"
+ },
+ "V-KV": {
+  "agreement": 0.1875,
+  "n_compared": 32,
+  "gguf_text": "The Roman Empire is a vast and varied topic, and we're counting down the centuries.\n\nThe Roman Empire is a vast and varied topic, and we're counting"
+ },
+ "V-KV-lite": {
+  "agreement": 0.0,
+  "n_compared": 32,
+  "gguf_text": "\" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \""
+ },
+ "V-mixed": {
+  "agreement": 0.03125,
+  "n_compared": 32,
+  "gguf_text": "I'm happy to help you clarify the difference between the two.\n\nI'm a large and friendly (and possibly not-so-often (and is) is a"
+ },
+ "BASE": {
+  "agreement": 0.0625,
+  "n_compared": 32,
+  "gguf_text": "The Roman Empire is one of the most influential and enduring civilizations in human history, spanning over 12 centuries. Here's a brief overview of its history:\n\n**"
+ }
+}

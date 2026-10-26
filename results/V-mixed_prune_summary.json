@@ -1,0 +1,24 @@
+{
+ "variant": "V-mixed",
+ "P0": 3212749824,
+ "P1": 2419995648,
+ "removed_frac": 0.24675253892411386,
+ "plan": {
+  "removed_layers": [
+   18,
+   20,
+   21,
+   22,
+   23
+  ],
+  "keep_kv": 4,
+  "keep_inter": 8192,
+  "removed_params_greedy": 792754176,
+  "removed_frac": 0.24675253892411386,
+  "final_params": 2419995648,
+  "design_S": 16384,
+  "uniform_kv": true,
+  "uniform_inter": true
+ },
+ "per_layer": null
+}

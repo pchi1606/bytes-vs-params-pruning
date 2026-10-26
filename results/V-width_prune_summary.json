@@ -1,0 +1,16 @@
+{
+ "variant": "V-width",
+ "P0": 3212749824,
+ "P1": 2442046464,
+ "removed_frac": 0.23988900543785385,
+ "plan": {
+  "removed_layers": [],
+  "keep_kv": 8,
+  "keep_q": 16,
+  "keep_inter": 5888,
+  "removed_params": 770703360,
+  "final_params": 2442046464,
+  "removed_frac": 0.23988900543785385
+ },
+ "per_layer": null
+}

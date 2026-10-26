@@ -1,0 +1,15 @@
+{
+ "variant": "V-KV",
+ "P0": 3212749824,
+ "P1": 2398006272,
+ "removed_frac": 0.25359694860573123,
+ "plan": {
+  "removed_layers": [],
+  "keep_kv": 4,
+  "keep_inter": 6400,
+  "removed_params": 814743552,
+  "final_params": 2398006272,
+  "removed_frac": 0.25359694860573123
+ },
+ "per_layer": null
+}

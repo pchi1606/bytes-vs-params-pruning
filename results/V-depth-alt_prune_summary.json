@@ -1,0 +1,23 @@
+{
+ "variant": "V-depth-alt",
+ "P0": 3212749824,
+ "P1": 2408973312,
+ "removed_frac": 0.25018334947701176,
+ "plan": {
+  "removed_layers": [
+   4,
+   7,
+   10,
+   13,
+   16,
+   19,
+   22
+  ],
+  "keep_kv": 8,
+  "keep_inter": 7680,
+  "removed_params": 803776512,
+  "final_params": 2408973312,
+  "removed_frac": 0.25018334947701176
+ },
+ "per_layer": null
+}

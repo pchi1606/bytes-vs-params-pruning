@@ -1,0 +1,83 @@
+{
+ "definition": "regret % = (selector cell mean - fastest primary cell mean)/fastest*100; frozen cell means, C>=4096",
+ "cells": {
+  "2|4096": {
+   "fastest_variant": "V-mixed",
+   "fastest_mean": 0.2300625,
+   "V-mixed_mean": 0.2300625,
+   "V-mixed_regret_pct": 0.0,
+   "V-width_mean": 0.25728125,
+   "V-width_regret_pct": 11.831024178212449
+  },
+  "2|6144": {
+   "fastest_variant": "V-mixed",
+   "fastest_mean": 0.28003125,
+   "V-mixed_mean": 0.28003125,
+   "V-mixed_regret_pct": 0.0,
+   "V-width_mean": 0.298546875,
+   "V-width_regret_pct": 6.611985269501163
+  },
+  "2|8192": {
+   "fastest_variant": "V-KV",
+   "fastest_mean": 0.379703125,
+   "V-mixed_mean": 0.4154947916666667,
+   "V-mixed_regret_pct": 9.426223886534176,
+   "V-width_mean": 0.5583528645833333,
+   "V-width_regret_pct": 47.04984705704842
+  },
+  "2|16384": {
+   "fastest_variant": "V-depth-alt",
+   "fastest_mean": 0.618953125,
+   "V-mixed_mean": 0.6548307291666666,
+   "V-mixed_regret_pct": 5.7964977827144235,
+   "V-width_mean": 0.8183380681818181,
+   "V-width_regret_pct": 32.21325414292368
+  },
+  "4|4096": {
+   "fastest_variant": "V-mixed",
+   "fastest_mean": 0.218703125,
+   "V-mixed_mean": 0.218703125,
+   "V-mixed_regret_pct": 0.0,
+   "V-width_mean": 0.25012500000000004,
+   "V-width_regret_pct": 14.36736443523614
+  },
+  "4|6144": {
+   "fastest_variant": "V-mixed",
+   "fastest_mean": 0.25546875,
+   "V-mixed_mean": 0.25546875,
+   "V-mixed_regret_pct": 0.0,
+   "V-width_mean": 0.30965625,
+   "V-width_regret_pct": 21.211009174311922
+  },
+  "4|8192": {
+   "fastest_variant": "V-mixed",
+   "fastest_mean": 0.309734375,
+   "V-mixed_mean": 0.309734375,
+   "V-mixed_regret_pct": 0.0,
+   "V-width_mean": 0.37255468750000004,
+   "V-width_regret_pct": 20.281995661605215
+  },
+  "4|16384": {
+   "fastest_variant": "V-depth-alt",
+   "fastest_mean": 0.59240625,
+   "V-mixed_mean": 0.6248046875,
+   "V-mixed_regret_pct": 5.468956058448056,
+   "V-width_mean": 0.7659019886363637,
+   "V-width_regret_pct": 29.286615162544905
+  }
+ },
+ "per_cap_mean": {
+  "2": {
+   "V-mixed_regret_pct": 3.80568041731215,
+   "V-mixed_max_pct": 9.426223886534176,
+   "V-width_regret_pct": 24.426527661921426,
+   "V-width_max_pct": 47.04984705704842
+  },
+  "4": {
+   "V-mixed_regret_pct": 1.367239014612014,
+   "V-mixed_max_pct": 5.468956058448056,
+   "V-width_regret_pct": 21.286746108424545,
+   "V-width_max_pct": 29.286615162544905
+  }
+ }
+}

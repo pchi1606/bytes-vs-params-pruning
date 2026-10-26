@@ -1,0 +1,29 @@
+{
+ "sequences": "results/prompts.json ['512'] 3x65-token slices",
+ "positions": [
+  16,
+  63
+ ],
+ "models": {
+  "BASE": {
+   "n_positions": 144,
+   "nll_hf_mean": 2.970592207584155,
+   "nll_gguf_mean_exact_subset": 1.6210004785550862,
+   "n_true_in_gguf_top10": 108,
+   "dnll_mean": -0.009848388640589449,
+   "kl_mean": 0.19174754953697645,
+   "top1_agreement": 0.9583333333333334
+  },
+  "V-KV-lite": {
+   "n_positions": 144,
+   "nll_hf_mean": 3.6131543324316024,
+   "nll_gguf_mean_exact_subset": 4.896658817927043,
+   "n_true_in_gguf_top10": 3,
+   "dnll_mean": 3.7613422870635986,
+   "kl_mean": 18.790660266845407,
+   "top1_agreement": 0.0
+  }
+ },
+ "rule": "PASS iff dnll(KVLITE) <= dnll(BASE)+0.05 AND kl(KVLITE) <= 2*kl(BASE) AND top1(KVLITE) >= top1(BASE)-0.10",
+ "verdict": "FAIL"
+}
