@@ -28,16 +28,10 @@ allocations search one shared unit space (layers, FFN channels, KV
 groups) and differ only in the cost model used to choose the cut.
 The result is a bounded negative. In a held-out
 (leave-one-variant-out) prediction contest, the traffic model does
-not beat the parameter model: at 2 threads $\Delta$AIC
-(parameters $-$ traffic) is $+2.21$
-(the traffic model needed $>10$ to win) and at 4 threads $-19.11$
-(parameters win outright). The predeclared byte allocation is not
-reliably faster than the parameter allocation to the registered
-standard: paired time ratios are 0.917 [0.824, 1.020] and 0.986
-[0.934, 1.041] at 2 threads (8192 and 16384 context), and 0.818
-[0.795, 0.842] and 0.817 [0.609, 1.096] at 4 threads, against a
-required upper confidence bound below 0.90, and the traffic model's
-own predicted ratios (0.771, 0.673) are systematically optimistic.
+not beat the parameter model at either thread cap, and the
+predeclared byte allocation is not reliably faster than the
+parameter allocation to the registered standard; the traffic
+model's own predicted speedups are systematically optimistic.
 Within this matched-budget CPU pruning family, an analytical
 weight-plus-KV traffic model therefore did not improve held-out
 prediction or registered selection over parameter count. The
@@ -49,12 +43,11 @@ scope limits bind the result: we measure decode speed only
 shared 2-core virtual machine whose tenant-load variance ---
 including a documented load-era effect on the earliest cells ---
 is a formal limitation. Descriptively, the byte-greedy pick's
-mean selection regret is low (3.8\% and 1.4\% at the two caps,
-vs 24.4\% and 21.3\% for the parameter pick) --- a good pick,
+mean selection regret is low --- a good pick,
 Section~\ref{sec:regret} argues, that the model itself does not
-explain. A post-hoc sensitivity excluding the saturated
-16384 context reverses the 4-thread contest, localising the
-failure at the longest context; the frozen verdict is unchanged.
+explain --- and a post-hoc sensitivity excluding the saturated
+longest context reverses the 4-thread contest, localising the
+failure there; the frozen verdict is unchanged.
 We report the mechanisms consistent with the failure,
 so the boundary of the traffic model's usefulness is itself
 the contribution.
