@@ -3,12 +3,16 @@
 % (official aaai2027.sty not installed on this machine; geometry matches the kit:
 % letter paper, 7.0in text width, 0.375in column separation, Times 10pt).
 \usepackage[letterpaper,textwidth=7.0in,textheight=9.0in,top=0.75in,left=0.75in,columnsep=0.375in]{geometry}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
 \usepackage{times}
 \usepackage{booktabs}
 \usepackage{amsmath}
 \usepackage[hidelinks]{hyperref}
 \usepackage{natbib}
-\title{When Do Parameter Budgets Misprice CPU Inference?\\ A Matched-Budget Test of Byte-Traffic Pruning Allocation}
+\emergencystretch=2.5em
+\title{When Do Parameter Budgets Misprice CPU Inference?\\ A Pre-registered Limit Study of Byte-Traffic Pruning Allocation}
 \author{Prabhu Rangaraju\\ Independent Researcher}
 \date{}
 \begin{document}
@@ -16,41 +20,45 @@
 
 
 \begin{abstract}
-Pruning budgets for language models are almost always stated in
+Pruning budgets are almost always stated in
 parameter count, yet CPU decode cost is plausibly driven by the bytes
 moved per token: weight bytes streamed each step plus KV-cache bytes
 read at the occupied context. We test, under a pre-registered
 protocol, whether allocating a $\sim$25\% structured prune of
 Llama-3.2-3B by an analytical per-token byte-traffic model beats
-allocating it by parameter count, at fixed CPU thread caps
-(2 and 4 threads, both pinned to 2 cores). Seven
+parameter-count allocation, at fixed CPU thread caps
+(2 and 4 threads, both pinned to 2 cores). Eleven
 allocations search one shared unit space (layers, FFN channels, KV
-groups) and differ only in the cost model used to choose the cut.
-The result is a bounded negative. In a held-out
-(leave-one-variant-out) prediction contest, the traffic model does
-not beat the parameter model at either thread cap, and the
-predeclared byte allocation is not reliably faster than the
-parameter allocation to the registered standard; the traffic
-model's own predicted speedups are systematically optimistic.
-Within this matched-budget CPU pruning family, an analytical
-weight-plus-KV traffic model therefore did not improve held-out
-prediction or registered selection over parameter count. The
-negative is about the analytical model, not about traffic-aware
-pruning as such: pruning by \emph{measured} latency remains
-untouched by our result. Two
-scope limits bind the result: we measure decode speed only
-(pruned-model quality is not evaluated), and all timing is on a
-shared 2-core virtual machine whose tenant-load variance ---
-including a documented load-era effect on the earliest cells ---
-is a formal limitation. Descriptively, the byte-greedy pick's
-mean selection regret is low --- a good pick,
-Section~\ref{sec:regret} argues, that the model itself does not
-explain --- and a post-hoc sensitivity excluding the saturated
-longest context reverses the 4-thread contest, localising the
-failure there; the frozen verdict is unchanged.
-We report the mechanisms consistent with the failure,
-so the boundary of the traffic model's usefulness is itself
-the contribution.
+groups) and differ only in the cost model choosing the cut.
+The tightened evidence does not support the negative
+result the protocol was built to deliver. A teacher-forced validity check of
+every exported variant (Amendment A3) passes 1 of 11:
+only V-depth-lite's GGUF stays within the frozen export-fidelity
+tolerances, so the pre-registered 10-variant allocation contest
+(six stage-1-valid plus four amendment variants)
+cannot be fitted on a D4-valid primary set, and the registered
+head-to-head has both arms invalid. The frozen local contest over
+the original six stage-1-valid variants, reported with that caveat:
+the traffic model does not beat the parameter model by the registered margin at either cap ($\Delta$AIC $+2.21$ at 2 threads, $-19.11$ at 4), and
+the predeclared byte allocation does not reliably meet the
+registered standard (paired ratios 0.917 / 0.986 at 2 threads,
+0.818 / 0.817 at 4), though in a post-hoc sensitivity excluding the saturated
+16384 context -- an exclusion requested in review, not
+pre-registered -- it does win the 4-thread contest. Quality is a
+context axis only: the frozen quality scorer is void (it scores
+raw-completion continuations, not answers), and the Amendment-4
+first-answer re-score of the frozen outputs gives BASE 85.00
+(34/40) and the sole D4-valid variant 55.00 (22/40). The contribution is
+therefore a boundary, drawn twice over: 10 of 11 allocations
+fail the export-fidelity standard under the joint
+prune-and-quantise pipeline (the two steps are applied jointly
+and never separated), and
+the traffic model's own predicted speedups run systematically
+ahead of what was measured. Traffic-aware pruning as
+such sits outside it --- pruning by \emph{measured} latency is
+untouched by anything we report. Scope: every timing comes from
+a shared 2-core virtual machine (tenant-load variance is a
+formal limitation); the outcome is CPU time, not energy.
 \end{abstract}
 
 \section{Introduction}
@@ -79,39 +87,53 @@ model, and does the traffic model predict held-out allocations'
 speed better than parameter count?}
 
 We answer with a pre-registered, single-model, single-runtime
-experiment designed so that the two cost models are the only thing
-that differs between arms. Our findings are negative in a specific,
-bounded sense:
+experiment in which the two cost models are the only things that
+differ between arms. Export-validity failures restrict the
+results to a subset of the design space; this paper reports
+that narrower result honestly:
 \begin{enumerate}
-\item \textbf{Prediction.} On held-out variants, the traffic model
-does not out-predict the parameter model (Section~\ref{sec:contest}).
-\item \textbf{Registered selection.} The predeclared byte
-allocation fails the pre-registered $\geq$10\% paired-advantage
-criterion at both thread caps (Section~\ref{sec:hurdle}).
-\item \textbf{Model calibration.} The traffic model predicts
-23--33\% advantages at cap 2 where 1--8\% are observed, so the
-failure is in the model, not only in the decision rule.
+\item \textbf{Validity.} A teacher-forced check of every variant's
+exported model passes 1 of 11 (Section~\ref{sec:validity}). The
+pre-registered allocation contest cannot be fitted on a D4-valid
+primary set; the registered head-to-head has both arms invalid.
+\item \textbf{Frozen contest, with caveat.} On the original six
+stage-1-valid variants, the traffic model does not out-predict the
+parameter model (Section~\ref{sec:contest}), and the predeclared
+byte allocation fails the pre-registered $\geq$10\% paired-advantage
+criterion at both thread caps (Section~\ref{sec:hurdle}). Five of
+those six fail the amended (D4) validity check on rebuilt models, so the contest is frozen evidence with that caveat.
+\item \textbf{Model calibration.} Where the traffic model predicts
+23--33\% advantages at cap 2, observation delivers 1--8\%; the
+decision rule shares the blame, but the model itself is
+faulty.
+\item \textbf{Quality as context only.} The quality evaluation ran; its frozen scorer is void, and the Amendment-4 first-answer re-score is reported as a context axis, never a verdict criterion (Section~\ref{sec:quality}).
 \end{enumerate}
 We also report selection regret descriptively
 (Section~\ref{sec:regret}): the byte-greedy pick was in raw terms a
-decent pick, which makes the model's inaccuracy more, not less,
-informative --- a good outcome obtained for the wrong stated reason
-is not evidence for the cost model.
+decent pick, which makes the model's inaccuracy more informative.
 
 \section{Related work}
 \textbf{Measured-latency pruning.} ZipLM prunes by target-runtime
-latency lookup tables rather than by size \citep{ziplm2023}. HAPE
-ranks structures by measured on-device latency differences for
-Llama-2-7B on a Xeon CPU, the closest deployment precedent to ours
-\citep{hape2025}. Both bypass analytical cost models entirely;
-neither tests whether an analytical traffic model adds predictive
-value over parameters on unseen allocations.
+latency lookup tables rather than by size \citep{ziplm2023}; HAPE ranks structures by measured on-device
+latency differences for Llama-2-7B on a Xeon CPU, the closest
+deployment precedent to ours \citep{hape2025}. Both sidestep
+analytical cost models altogether, and neither asks whether an
+analytical traffic model adds predictive value over parameters
+on unseen allocations.
+\textbf{Structured pruning methods.} LLM-Pruner removes coupled
+structures by gradient-estimated importance and retrains
+\citep{llmpruner2023}; SliceGPT cuts dimensions in a rotated
+space \citep{slicegpt2024}; Wanda prunes by weight magnitude
+times activation norm \citep{wanda2024}. Our variants span the
+same axes (layers, FFN width, KV heads) at a matched $\sim$25\%
+removal, but this paper proposes no pruning method: the treatment
+is the cost model that chooses the cut.
 \textbf{Joint FFN--KV allocation.} GRASPrune allocates a single
 budget jointly over FFN channels and KV groups, but states that
 ``we use parameter count as the budget proxy''; a bandwidth-aware
 cost is proposed in its \S3.1 and named as a limitation, not
 evaluated \citep{grasprune2026}. Our experiment is, to our
-knowledge, the controlled test of that stated extension.
+knowledge, the controlled test of that extension.
 \textbf{KV-targeted pruning.} KVPruner prunes KV channels and
 reports that equal parameter counts can yield different speeds,
 but its inference-overhead evaluation disables caching, so its
@@ -120,123 +142,206 @@ numbers do not speak to cached decode \citep{kvpruner2024}.
 per-token traffic as weight bytes plus active KV reads/writes ---
 the formula family we use --- and benchmarks it across on-device
 hardware including Llama-3.2-1B, without a pruning-allocation test
-\citep{rooflinebench2026}. Analytical inference models separate
-weight and KV memory costs \citep{pope2023}; roofline surveys argue
-low-batch decode is memory-bound \citep{yuan2024}; CPU
-characterisation work shows decode performance depends on memory
-hierarchy, placement, and core configuration in ways a single
-bandwidth constant cannot capture \citep{iiswc2024}; and
-kernel-level simulation finds roofline predictors retain large
-errors unless kernel efficiency is learned \citep{kernelsight2026}.
-Our design asks whether the simplest analytical traffic model
-earns its keep for one concrete decision: where to cut.
+\citep{rooflinebench2026}. Analytical models separate weight and
+KV memory costs \citep{pope2023}; CPU characterisation and
+kernel-level simulation both find that a single bandwidth
+constant cannot capture decode performance
+\citep{iiswc2024,kernelsight2026}.
+\textbf{This venue.} EMC$^2$'s own program prices the same
+quantities: KV-cache retention as a carbon tradeoff
+\citep{bassi2026}; NF4 dequantisation as a first-order cost
+\citep{qi2026}; efficiency by composite index \citep{parihar2026};
+operation fusion, which changes performed traffic, as a speedup
+\citep{salmani2025}. Our design asks whether the simplest
+analytical traffic model earns its keep for one decision: where
+to cut. The topic list names ``limit studies'' and ``bottleneck
+analysis'' explicitly; this paper is one.
 
 \section{Method}
 \subsection{Variants and cost models}
 We prune Llama-3.2-3B-Instruct (GGUF Q4\_K\_M; KV cache fp16) by
-$\sim$25\% of parameters. All seven variants are chosen from one
-shared search space (whole layers, FFN channels, KV groups);
-allocations differ only in the cost model that prices each unit:
-parameter count, marginal byte traffic $\Delta B$ at the design
-contexts, or the resulting mix. Final parameter counts span
-2.398--2.442B (1.84\% spread); parameter count enters all analyses
-as a covariate, so exact equality is not load-bearing.
+$\sim$25\% of parameters. Eleven allocations search one shared
+search space (whole layers, FFN channels, KV groups); allocations
+differ only in the cost model that prices each unit: parameter
+count, marginal byte traffic $\Delta B$ at the design contexts, or
+a mix of the two. Final parameter counts span 2.398--2.442B
+(1.84\% spread); tensor-payload bytes for the original seven span
+1.526--1.552 GB; parameter count enters all analyses as a
+covariate, so exact equality is not load-bearing.
 SIMD-alignment constraints bind all variants (FFN multiples of
-256, widths multiples of 64, head dimension 128).
+256, hidden widths multiples of 64, head dimension 128). The six
+originally stage-1-valid variants are the frozen contest set; the four amendment
+variants (A1) extend it to ten for the amended contest.
 
 Both candidates are produced by applying their cost model to the
 \emph{identical} candidate space, so their differing composition
 is the treatment, not a confound: the parameter model spends the
-whole budget on FFN width because layers and KV heads are
-expensive in parameters per unit, while the byte model spends it
-on layers and KV heads because they are expensive in traffic per
-unit. The remaining five variants span intermediate selections of
-the same space, so the prediction contest (Section~\ref{sec:contest})
-is over allocations, not only over the two endpoints. Concretely,
-V-width keeps all 28 layers and 8 KV heads per layer and trims the
-FFN intermediate size uniformly to 5888; V-mixed removes layers
-18 and 20--23, keeps 4 KV heads per layer, and trims the FFN
-intermediate size uniformly to 8192.
+whole budget on FFN width (layers and KV heads are expensive in
+parameters per unit), while the byte model spends it on layers
+and KV heads (expensive in traffic per unit). The remaining
+variants span intermediate selections of the same space, so the
+prediction contest (Section~\ref{sec:contest}) is over
+allocations, not only over the two endpoints.
 
 \begin{table}[ht]
-\centering\small
-\begin{tabular}{@{}lllll@{}}
+\centering\scriptsize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llllll@{}}
 \toprule
-Variant & Layers & $\sum$ KV-heads & Params (B) & Allocation rule \\
+Variant & Layers & KV-heads & Params (B) & Allocation rule & D4 \\
 \midrule
-V-width & 28 & 224 & 2.442 & parameter count (FFN trim only) \\
-V-depth & 21 & 168 & 2.409 & 7 whole layers dropped \\
-V-depth-lite & 24 & 192 & 2.414 & 4 whole layers dropped \\
-V-depth-alt & 21 & 168 & 2.409 & 7 layers, alternate positions \\
-V-KV & 28 & 112 & 2.398 & KV heads halved (GQA 8$\rightarrow$4) \\
-V-KV-lite & 28 & 168 & 2.442 & KV heads 8$\rightarrow$6 (export invalid; \S\ref{sec:kv}) \\
-V-mixed & 23 & 92 & 2.420 & predeclared byte-greedy mix \\
+V-width & 28 & 224 & 2.442 & params (FFN trim) & FAIL \\
+V-depth & 21 & 168 & 2.409 & 7 layers dropped & FAIL \\
+V-depth-lite & 24 & 192 & 2.414 & 4 layers dropped & PASS \\
+V-depth-alt & 21 & 168 & 2.409 & 7 layers, alt.\ positions & FAIL \\
+V-KV & 28 & 112 & 2.398 & KV heads 8$\rightarrow$4 & FAIL \\
+V-KV-lite & 28 & 168 & 2.442 & KV heads 8$\rightarrow$6 & FAIL$^*$ \\
+V-mixed & 23 & 92 & 2.420 & byte-greedy mix & FAIL \\
+V-shallow & 26 & 208 & 2.398 & 2 top layers dropped & FAIL \\
+V-kv2 & 28 & 56 & 2.420 & KV heads 8$\rightarrow$2 & FAIL \\
+V-mid & 23 & 138 & 2.402 & 5 mid layers, KV 8$\rightarrow$6 & FAIL \\
+V-front & 24 & 192 & 2.414 & 4 front layers dropped & FAIL \\
 \bottomrule
 \end{tabular}
-\caption{The seven allocations. V-width is the parameter-count
+\caption{The eleven allocations. V-width is the parameter-count
 candidate and V-mixed, predeclared before measurement, is the
-byte-traffic candidate for the head-to-head contrast. Parameter
-counts verify the matched budget (2.398--2.442B, 1.84\% spread);
-tensor-payload bytes per variant are 1.526--1.552 GB.}
+byte-traffic candidate. Parameter counts verify the matched budget
+(2.398--2.442B, 1.84\% spread). D4 is the amended validity verdict
+(Section~\ref{sec:validity}). $^*$V-KV-lite: the original build was
+export-invalid (top-1 0.000); the amended rebuild fails D4 on KL by 0.005.}
 \end{table}
 
 The traffic model prices a decode step at occupied context $c$ as
 $B(c) = B_{\text{weights}} + B_{\text{KV}}(c)$, with
-$B_{\text{KV}}(c) = 2 \times (\sum \text{KV-heads}) \times 128
-\times 2\,\text{B} \times c$. For the unpruned base this gives KV
+$B_{\text{KV}}(c) = 2(\sum \text{KV-heads})\cdot128\cdot2\text{B}\cdot c$. For the unpruned base this gives KV
 shares of total traffic of $\approx$24\% at 4k, 39\% at 8k, and
 56\% at 16k context --- the long-context regime is where a traffic
-model has room to differ from parameter count, so contexts below
-4096 are reported but the registered prediction contest uses
-$C \geq 4096$.
+model has room to differ from parameter count, so contexts below 4096 are reported but the registered contest uses $C \geq 4096$.
 
 \subsection{Protocol}
 The protocol, criteria, and analysis definitions were
 pre-registered before any stage-1 measurement (study record
-SPEC v0.3, 2026-10-23, frozen before any stage-1 run; runtime
-amendments were logged in the same record as they occurred and
-are summarised where they bear on the results).
+SPEC v0.3, 2026-10-23; runtime amendments were logged in the
+same record and are summarised where they bear on the results).
 Timing uses llama.cpp (\texttt{llama-server}) on a 2-core virtual
-machine (the guest presents 2 vCPUs of an AMD EPYC 9D25 host). Thread caps are llama.cpp thread counts ($-t$ 2 and
-$-t$ 4) under a \texttt{taskset -c 0,1} pin to two cores; ``cap 4''
+machine (2 vCPUs of an AMD EPYC 9D25 host). Thread caps are llama.cpp thread counts ($-t$ 2 and
+$-t$ 4) under a \texttt{taskset -c 0,1} pinning to two cores; ``cap 4''
 is four threads on two cores --- an oversubscribed cap, not a
-four-core result --- and is labelled as such throughout. Each measurement
+four-core result --- labelled as such throughout. Each measurement
 cell (variant $\times$ cap $\times$ context $\in$
 \{512, 2048, 4096, 6144, 8192, 16384\}) runs in a fresh server
 process (``virgin'' protocol, adopted after a slot-history
-contamination artifact was caught and its 30 pre-protocol reps
-excluded), with prefill-only primes, 5 warmup and 5 recorded
-repetitions of exactly 128 decode steps on fixed token IDs.
-All decoding is single-sequence (batch size 1). The
-primary metric is CPU seconds per token; per-rep host load and
-involuntary context switches are recorded. In total 521 virgin
+contamination artifact was caught and the 30 pre-protocol reps
+excluded), with prefill-only primes, 5 warmup and 5 recorded reps of 128 decode steps on fixed token IDs.
+All decoding is single-sequence (batch size 1); the primary metric is CPU seconds per token, with per-rep host load and context switches recorded. In total 521 virgin
 reps are banked, of which 451 belong to the six primary variants
-(see Section~\ref{sec:kv}); the registered contest fits use the
+(see Section~\ref{sec:validity}); the contest fits use the
 $C\geq4096$ subsets (135 reps at cap 2, 136 at cap 4).
 
 \subsection{Pre-registered criteria}
-Three frozen tests decide the claim. (i) \emph{Prediction contest:}
+Three frozen tests decide the claim, with one descriptive analysis
+alongside them. (i) \emph{Prediction contest:}
 regressions of log CPU-s/token on either parameter count or
 modeled byte traffic (each with a layer-count term), judged on
 leave-one-variant-out (LOVO) relative error over $C\geq4096$ reps;
 the traffic model wins only if it has lower LOVO error
 \emph{and} $\Delta$AIC (parameters $-$ traffic) $> 10$. LOVO
 relative error is the mean, over the held-out variant's reps, of
-$|\text{pred}-\text{obs}|/\text{obs}$; because every held-out
-variant is an extrapolation to an unseen architecture, absolute
-values are large for both models and the contest is comparative.
+$|\text{pred}-\text{obs}|/\text{obs}$; every held-out variant is an extrapolation to an unseen architecture, so absolute values are large for both models and the contest is comparative by design.
 (ii) \emph{Registered hurdle:} in genuine temporally-paired blocks
 (five blocks per cap $\times$ \{8192, 16384\}, adjacent
 fresh-process cells, randomised order), the upper 95\% confidence
 bound of the paired log-time ratio V-mixed/V-width must be
-$< 0.90$ at both contexts per cap. (iii) \emph{Selection regret}
-(post-hoc and non-registered; descriptive only, computed at
-manuscript stage from banked data):
-for each cell, a selector's regret is its mean time minus the
-fastest primary variant's mean, relative to the fastest mean.
+$< 0.90$ at both contexts per cap. (iii) \emph{Validity (A3):}
+every variant's exported GGUF is checked teacher-forced against
+its own HF pruned twin (144 positions); a variant failing the
+frozen margins is excluded from primary fits, with a fit including the failed variants as sensitivity (Section~\ref{sec:validity}).
+(iv) \emph{Selection regret} (post-hoc and non-registered;
+descriptive only, computed at manuscript stage from banked data):
+for each cell, regret is a selector's mean time minus the
+fastest primary mean, relative to that mean.
+The amended campaign (Amendments 1--3, 2026-11-04) adds four
+variants, a quality evaluation, the all-variant validity check,
+equivalence/power analyses, a FLOP-count comparator arm, and a
+multicore timing arm. The amended timing (Kaggle, a public
+cloud-compute platform; campaign K2) did not complete: the run
+was cancelled at Kaggle's 12-hour session cap mid-way through
+the fourth variant, and the harvested partial measurements
+cover 46 of 120 cells over 4 of 10 variants (no verdict file
+was produced). The analyses consuming the amended timing (the
+including-fit sensitivity, TOST, power, the no-16384 secondary,
+and the FLOP arm, Amendment 2 item B1) therefore remain unrun
+and are the named remaining shortfall, outside this
+submission's scope; no substitute data are used for them.
+Amendment 4 (2026-11-05) corrects the quality scorer; see
+Section~\ref{sec:quality}.
 
 \section{Results}
-\subsection{Registered hurdle: not met}
+\subsection{Validity: 1 of 11 exports survives}
+\label{sec:validity}
+\begin{table}[ht]
+\centering\scriptsize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llllll@{}}
+\toprule
+Variant & HF NLL & dNLL & KL & top-1 & D4 \\
+\midrule
+BASE & 2.968 & $-$0.009 & 0.200 & 0.951 & ref \\
+V-width & 8.498 & $+$0.003 & 0.446 & 0.660 & FAIL \\
+V-depth & 4.376 & $+$0.074 & 0.275 & 0.868 & FAIL \\
+V-depth-lite & 3.818 & $+$0.005 & 0.263 & 0.889 & PASS \\
+V-depth-alt & 4.225 & $-$0.011 & 0.468 & 0.826 & FAIL \\
+V-KV & 7.534 & $-$0.032 & 0.937 & 0.681 & FAIL \\
+V-KV-lite & 3.614 & $+$0.012 & 0.404 & 0.903 & FAIL \\
+V-mixed & 8.488 & $+$0.102 & 0.860 & 0.667 & FAIL \\
+V-shallow & 4.576 & $-$0.064 & 0.389 & 0.833 & FAIL \\
+V-kv2 & 7.811 & $-$0.165 & 1.043 & 0.743 & FAIL \\
+V-mid & 4.207 & $+$0.024 & 0.590 & 0.833 & FAIL \\
+V-front & 4.752 & $+$0.008 & 0.638 & 0.826 & FAIL \\
+\bottomrule
+\end{tabular}
+\caption{Teacher-forced validity (A3; 144 positions; Kaggle
+campaign K1). dNLL, KL and top-1 compare each variant's GGUF
+against its own HF pruned twin, so D4 tests the export, not the
+pruning: a variant fails D4 when its GGUF diverges from its HF
+twin (quantisation divergence), whatever its pruning damage (the
+HF NLL column). (failing variants' KL is 1.4--5.2$\times$ BASE's 0.200.)
+Limits: dNLL $\leq$ 0.041 (one-sided: dNLL(V) $\leq$
+dNLL(BASE) $+$ 0.05), KL $\leq$ 0.399, top-1 $\geq$ 0.851.
+Two failures are marginal (V-KV-lite KL by 0.005; V-shallow
+top-1 by 3 positions). All 11 verdicts were recomputed
+from the harvested K1 files and match; the K1 raw-output pull
+has since landed and satisfies the quality-output provenance
+(Section~\ref{sec:quality}).}
+\end{table}
+The check runs on Kaggle (campaign K1; pinned base snapshot and
+llama.cpp 836d571; 7,956 s); the seven original variant GGUFs
+are byte-identical (sha256) to the test-9 clean-room rebuilds,
+whose packed bytes match the frozen analysis exactly. The K1 BASE GGUF
+differs from the frozen BASE by 128 bytes (presumed metadata;
+a tensor-byte comparison is not possible from the raw pull,
+which contains no .gguf files), so
+transfer of the K1 verdicts to the frozen contest's artifacts
+is conditional on that comparison; the verdicts are internal
+to K1's own BASE reference and unaffected. The dNLL bound is
+one-sided by the frozen rule (a GGUF scoring better than its HF
+twin passes), so V-shallow ($-$0.064) and V-kv2 ($-$0.165)
+fail D4 on top-1 and KL, not dNLL. The 1-of-11 count is
+margin-sensitive: KL $\leq$ 0.45 admits V-KV-lite (2 of 11);
+relaxing all three limits ($|$dNLL$|$ $\leq$ 0.07, KL $\leq$ 0.45,
+top-1 $\geq$ 0.83) admits V-shallow too (3 of 11); that most
+variants fail is robust to these relaxations. Two readings matter. First, the D4 rule as frozen is
+binary and A3 applies it to primary-fit membership: the primary
+fit set is \{V-depth-lite\} alone, so the 10-variant contest
+cannot be fitted as a primary analysis, and a fit including all
+variants is the sensitivity analysis. Second, the pattern is itself the
+result: pruning damage (HF NLL) and quantisation divergence move
+together --- the four variants with the worst pruning damage
+(V-width, V-mixed, V-kv2, V-KV; NLL $+$4.6 to $+$5.5) are also the four with KL 2.2--5.2$\times$ BASE's. The registered hurdle's two arms both fail
+D4; its timings are retained per the frozen rule, reported as timings of artifacts diverging from their intended pruned models beyond tolerance.
+V-KV-lite deserves a correction: its stage-1 invalidity (top-1
+0.000, a converter bug) described the original build; the amended
+rebuild gives top-1 0.903 and dNLL $+$0.012 --- valid in all but a marginal KL failure (0.404 against 0.399), so the amended verdict is a marginal failure, not an invalid export; the original exclusion was correct at the time.
+
+\subsection{Registered hurdle: not met (both arms invalid)}
 \label{sec:hurdle}
 \begin{table}[ht]
 \centering\small
@@ -251,207 +356,285 @@ Cap & Ctx & Paired ratio & 95\% CI & Traffic-predicted \\
 \bottomrule
 \end{tabular}
 \caption{Paired V-mixed/V-width time ratios (five retained
-pairs per cell, from the paired-block manifest; three
-restart-split blocks were replaced whole). The
+pairs per cell, from the paired-block manifest). The
 traffic model's predicted ratio is cap-independent (it prices
 bytes, not threads). The
-hurdle (upper bound $<0.90$ at both contexts) is met in no cap:
-cap 2 fails on effect size, cap 4 passes at 8192 but is too
-imprecise at 16384.}
+hurdle (upper bound $<0.90$ at both contexts) is met in neither cap:
+cap 2 fails: the upper bounds exceed 0.90 and the intervals include 1; cap 4 passes at 8192 but is too imprecise at 16384. Caveat: both arms fail D4
+(Section~\ref{sec:validity}); these are timings of the exported
+artifacts, not of validated pruned models.}
 \end{table}
-The byte candidate is faster than the parameter candidate at
-4 threads ($\approx$0.82) but not at 2 threads (0.92 / 0.99, CIs
-include 1), and nowhere to the registered standard. The traffic
-model's predicted ratios are systematically optimistic.
-
-\subsection{Prediction contest: traffic does not win}
+At 4 threads the byte candidate wins ($\approx$0.82); at 2 threads it does not (0.92/0.99, CIs include 1). Nowhere does it meet the registered standard --- and both arms fail D4, so these paired ratios compare exported artifacts that diverge from their intended pruned models beyond tolerance, not validated pruned models. \subsection{Prediction contest: traffic does not win (frozen, caveated)}
 \label{sec:contest}
 \begin{table}[ht]
-\centering\small
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}llll@{}}
 \toprule
-Cap & Params LOVO err & Traffic LOVO err & $\Delta$AIC (P$-$B) \\
+Cap & Params err & Traffic err & $\Delta$AIC (P$-$B) \\
 \midrule
 2 & 0.743 & 0.689 & $+2.21$ (needed $>10$) \\
 4 & 0.284 & 0.538 & $-19.11$ (params win) \\
 \bottomrule
 \end{tabular}
-\caption{Held-out prediction, $C\geq4096$ (135 reps at cap 2,
-136 at cap 4). Including
-the invalid variant as a sensitivity gives the same outcome
-($\Delta$AIC $+3.37$ / $-19.56$).}
+\caption{Held-out LOVO prediction error, $C\geq4096$ (135 reps at
+cap 2, 136 at cap 4), frozen six-variant primary fit. Including
+V-KV-lite (invalid in stage 1) as a sensitivity gives the same outcome
+($\Delta$AIC $+3.37$ at cap 2, $-19.56$ at cap 4). Caveat: five of these six
+stage-1-valid variants fail the amended (D4) validity check on rebuilt GGUFs
+(Section~\ref{sec:validity}).}
 \end{table}
-At 2 threads the traffic model's small LOVO edge is far below the
-registered $\Delta$AIC margin; at 4 threads the parameter model is
-better on both criteria. The unscaled raw-byte predictor is far
-worse (held-out relative error 4.34 / 4.97), so the contest is
-between the fitted models, and the fitted traffic model still does
-not earn its extra structure.
-With only six valid variants, these point estimates carry wide
-uncertainty, which we quantify by a cluster bootstrap over
-variants (2{,}000 resamples, identical definitions): cap 2
+At 2 threads the traffic model's LOVO edge falls far short of the registered $\Delta$AIC margin; at 4 threads the parameter model wins outright, on both criteria. The unscaled raw-byte predictor is far worse (held-out relative error 4.34 at cap 2, 4.97 at cap 4), so the contest is between the fitted models ---
+and even fitted, the traffic model fails to justify its extra
+structure.
+With only six stage-1-valid variants, these point estimates carry wide uncertainty, quantified by a cluster bootstrap over variants (2{,}000 resamples): cap 2
 $\Delta$AIC median $-0.91$, 95\% interval $[-28.8, +37.3]$,
 $P(\Delta\text{AIC}>10)=0.16$; cap 4 median $-8.90$, interval
-$[-138.4, +7.29]$, $P(>10)=0.02$. The verdict is therefore a
-criteria verdict, not a significance claim: at cap 2 the traffic
-model is simply not shown to be better by anything like the
-registered margin, and at cap 4 the point estimates and the
+$[-138.4, +7.29]$, $P(>10)=0.02$. Read the verdict for what
+it is: a verdict under the registered criteria, no significance claim attached. At
+cap 2, nothing shows the traffic model better by anything
+approaching the registered margin; at cap 4, point estimates and
 bootstrap both favour parameters.
-A post-hoc sensitivity (requested in review; not part of the
-frozen criteria) excludes the saturated 16384 context, refitting
-the identical contest on $C\in\{4096,6144,8192\}$ (98 / 95 reps;
-the pipeline first replicates the frozen numbers exactly). The
-cap-2 outcome is unchanged ($\Delta$AIC $+3.70$, still below the
+A post-hoc sensitivity (requested in the 2026-11-04 panel review; not part of the
+frozen criteria) excludes the saturated 16384 context, refitting the identical contest on $C\in\{4096,6144,8192\}$ (98/95 reps).
+The cap-2 outcome is unchanged ($\Delta$AIC $+3.70$, still below the
 $>10$ margin), but the cap-4 outcome reverses: traffic LOVO 0.207
 vs params 0.273, $\Delta$AIC $+20.27$ --- the traffic model wins
-there. The frozen verdict is unaffected, but the sensitivity
-localises the failure: it is concentrated at the longest context,
-where saturation and contention are worst, not uniform across the
-regime; whether that concentration is a true context-scaling
-effect or contention noise at 16384 cannot be separated on the
-banked data.
+there. None of this touches the frozen verdict; the sensitivity localises the failure to the longest context, where saturation and contention peak. Whether it is a true context-scaling
+effect or contention noise at 16384, the banked data cannot say.
+The amended 10-variant contest, the FLOP-count comparator arm
+(Amendment 2 item B1), and the equivalence/power analyses
+(Amendments 1--2, A4) consume the amended timing (campaign K2,
+cancelled incomplete; the protocol note in Section 3); under A3
+their primary set is \{V-depth-lite\}, so they would be reported
+as fits including all variants, not as the pre-registered
+primary contest. They remain unrun, and no substitute data
+are used.
+\begin{table}[ht]
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+Model & Cap & $\beta_0$ & $\beta_1$ & $\beta_2$ & $\beta_3$ & $R^2$ \\
+\midrule
+$M_P$ & 2 & $-$6.638 & 2.761 & 0.890 & $-$0.347 & 0.412 \\
+$M_B$ & 2 & 12.884 & $-$8.433 & 0.519 & --- & 0.413 \\
+$M_P$ & 4 & 3.273 & $-$1.287 & $-$0.365 & 0.167 & 0.608 \\
+$M_B$ & 4 & 5.790 & $-$3.628 & 0.383 & --- & 0.542 \\
+\bottomrule
+\end{tabular}
+\caption{Fitted models ($y=\log$ CPU-s/token). $M_P$: $y\sim1+P+S+
+P\cdot S+L$ ($\beta_1=P$ in $10^9$, $\beta_2=S=(ctx+64)/10^3$,
+$\beta_3=P\cdot S$); $M_B$: $y\sim1+B_W+B_{KV}(S)+L$ ($\beta_1=B_W$
+in $10^9$ bytes, $\beta_2=B_{KV}$). Layer coefficient $\approx$0
+in all four fits ($M_P$ cap 2: 0.001; $M_B$ cap 2: 0.008; $M_P$ cap 4:
+$-$0.003; $M_B$ cap 4: $-$0.003). Coefficients are not
+interpreted: signs flip across caps (collinearity in a
+six-variant fit). Omitted from the traffic model: KV writes,
+activation traffic, dequantisation cost, kernel efficiency.
+AIC: cap 2 $-328.58$ (P) vs $-330.78$ (B); cap 4 $-507.04$ (P)
+vs $-487.94$ (B).}
+\end{table}
 
-\subsection{Selection regret}
+\subsection{Absolute times}
+Absolute times run 0.22--1.38 CPU-s/token. V-depth-lite, the
+only D4-valid variant, is slowest at most cap-2 cells (1.376
+CPU-s/token at 16384, $\pm$1.164), so validity and speed do not
+coincide; the fastest cells belong to V-mixed and V-depth-alt.
+Three cells are variance-inflated (caption); the paired ratios
+of Section~\ref{sec:hurdle} govern the two-candidate comparison.
+\begin{table}[ht]
+\centering\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lllllllll@{}}
+\toprule
+Variant & \multicolumn{4}{c}{Cap 2 (CPU-s/token)} & \multicolumn{4}{c}{Cap 4 (CPU-s/token)} \\
+ & 4096 & 6144 & 8192 & 16384 & 4096 & 6144 & 8192 & 16384 \\
+\midrule
+V-width & 0.257 & 0.299 & 0.558 & 0.818 & 0.250 & 0.310 & 0.373 & 0.766 \\
+V-depth & 0.254 & 0.474 & 0.415 & 1.187 & 0.244 & 0.500 & 0.372 & 0.983 \\
+V-depth-lite & 0.547 & 0.520 & 0.457 & 1.376 & 0.269 & 0.332 & 0.414 & 0.671 \\
+V-depth-alt & 0.261 & 0.346 & 0.397 & 0.619 & 0.244 & 0.309 & 0.379 & 0.592 \\
+V-KV & 0.262 & 0.323 & 0.380 & 0.918 & 0.245 & 0.303 & 0.355 & 0.669 \\
+V-mixed & 0.230 & 0.280 & 0.415 & 0.655 & 0.219 & 0.255 & 0.310 & 0.625 \\
+\bottomrule
+\end{tabular}
+\caption{Cell means, CPU seconds per token ($n=5$ reps per cell),
+frozen local timing. 95\% CIs are in the supplementary records;
+three cells are variance-inflated (V-width cap-2 8192,
+$\pm$0.338; V-depth cap-2 6144, $\pm$0.164; V-depth-lite cap-2
+16384, $\pm$1.164); the paired ratios of Section~\ref{sec:hurdle} govern the two-candidate comparison; contexts below 4096 are in the supplementary records; the amended campaign's partial cells are likewise in the supplementary records (campaign K2, incomplete).}
+\end{table}
+
+\subsection{Selection regret (descriptive)}
 \label{sec:regret}
 Regret against the measured fastest primary variant, per cell
 (frozen cell means): V-mixed's regret is 0\% at 4096--6144 (both
-caps) and at cap-4 8192, rising to 9.4\% (cap 2, 8192, fastest
+caps) and at cap-4 8192, reaching 9.4\% at cap-2 8192 (fastest
 V-KV) and 5.5--5.8\% at 16384 (fastest V-depth-alt). V-width's
 regret is 6.6--47.0\%. Mean regret over $C\geq4096$ is 3.8\%
 (V-mixed) vs 24.4\% (V-width) at cap 2 and 1.4\% vs 21.3\% at
-cap 4. Two cautions bind this descriptive measure: at cap-2 8192
-the cell mean for V-width is variance-inflated (the paired ratio,
-0.917, is authoritative for the two-candidate comparison ---
-excluding that one cell, mean regret is 1.9\% (V-mixed) vs
-16.9\% (V-width) at cap 2, so the ordering does not depend on it),
-and
-regret rewards the pick, not the model --- V-mixed also removes
-five layers, so its speed is not attributable to its traffic
-advantage alone. The registered verdict rests on
+cap 4. V-depth-alt, fastest at 16384, is one of the six
+primary variants, not an amendment variant. Regret rewards picks rather than models, and V-mixed also
+removes five layers, so its speed cannot be credited to its
+traffic advantage alone. The registered verdict rests on
 Sections~\ref{sec:hurdle}--\ref{sec:contest}; regret shows the
 practical stakes were asymmetric: following the traffic model
-would not have hurt \emph{here}, but the model gives no reliable
-reason to expect that elsewhere, since it cannot predict held-out
-allocations or its own margin.
+would have done no harm \emph{here} --- but a model that predicts
+neither held-out allocations nor its own margin gives no reason
+to expect a repeat elsewhere.
+
+\subsection{Model quality: frozen scorer void; amended re-score reported}
+\label{sec:quality}
+The A2 quality evaluation ran on Kaggle for all 12 models (40
+committed tasks: extraction, arithmetic, format, summarise; greedy
+decoding); its frozen scores are void and are cited nowhere as
+evidence. The defect is in the instrument, not in any model: tasks
+were served by raw completion with no chat template and no stop
+strings, so the instruct model answers and then continues
+generating, while the frozen scorer assumes the output ends at
+the answer --- ``exact'' compares the whole output, ``number''
+takes the last integer, and the JSON-array match is greedy across
+the continuation. On BASE the first token is correct on 12/12
+extraction tasks and the first number on 8/10 arithmetic tasks,
+yet the frozen scorer records 0/12 and 0/10 (its 14 of 40 passes
+all come from format and summarise); a local re-run reproduces
+Kaggle's frozen 35.0 exactly, so the defect is in the design, not
+the environment. Amendment 4 (2026-11-05) froze a first-answer
+re-scoring rule (first line for exact answers, first integer,
+first paragraph for word-count/keywords, first bullet block,
+non-greedy JSON match), now executed on the retrieved frozen K1
+outputs (the raw pull landed; re-scoring the pulled outputs with
+the frozen scorer reproduces every stored score exactly).
+\begin{table}[ht]
+\centering\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrrl@{}}
+\toprule
+Model & Amend. & Frozen & Pass & Ext/Ari/Fmt/Sum (\%) \\
+\midrule
+BASE & 85.00 & 35.00 & 34/40 & 91.7/80.0/70.0/100.0 \\
+V-depth-lite & 55.00 & 25.00 & 22/40 & 91.7/10.0/20.0/100.0 \\
+V-shallow & 35.00 & 32.50 & 14/40 & 75.0/0.0/20.0/37.5 \\
+V-depth & 30.00 & 7.50 & 12/40 & 75.0/0.0/0.0/37.5 \\
+V-KV-lite & 27.50 & 12.50 & 11/40 & 33.3/10.0/30.0/37.5 \\
+V-front & 7.50 & 5.00 & 3/40 & 0.0/0.0/0.0/37.5 \\
+V-KV & 2.50 & 5.00 & 1/40 & 0.0/0.0/0.0/12.5 \\
+V-mid & 2.50 & 2.50 & 1/40 & 0.0/0.0/0.0/12.5 \\
+V-depth-alt & 0.00 & 0.00 & 0/40 & 0.0/0.0/0.0/0.0 \\
+V-kv2 & 0.00 & 0.00 & 0/40 & 0.0/0.0/0.0/0.0 \\
+V-mixed & 0.00 & 0.00 & 0/40 & 0.0/0.0/0.0/0.0 \\
+V-width & 0.00 & 0.00 & 0/40 & 0.0/0.0/0.0/0.0 \\
+\bottomrule
+\end{tabular}
+\caption{Amended first-answer re-score (Amendment 4) of the
+frozen K1 outputs, mean points of 100, beside the void frozen
+scores. Quality is a context axis only, never a verdict
+criterion.}
+\end{table}
+BASE scores 85.00 (34/40); the sole D4-valid variant,
+V-depth-lite, is also the highest-scoring pruned variant (55.00);
+four variants score 0.00 even under first-answer scoring. The
+earlier ``37/40'' figure was a hand diagnostic on locally
+regenerated outputs under looser readings, superseded as a
+number by this re-score (the verbatim rule gives 34/40 on the K1
+outputs; the reconciliation is itemised in the supplementary
+record). The corrected rule still detects genuine errors ---
+for BASE, ari02, ari06 and fmt09, plus ext05 and fmt05 under the
+rule as frozen --- so it is not vacuous. No speed--quality
+frontier is claimed on one 40-task suite.
 
 \subsection{Diagnostics and saturation}
 \label{sec:diagnostics}
 Fresh diagnostic remeasurement of the earliest pool cells did not
 reproduce their original slowness: those cells were measured in
-the run's highest-contention window (host load 8--10 from other
-tenants), a load-era effect we carry as a caveat (it biases, if
-anything, against the depth allocations, not against the
-parameter model; the reference V-width agrees across eras at 6144
-and runs 0.79--0.88$\times$ at 16384). At 16384, V-depth-alt and
-V-mixed saturate at cap 4 (wall tok/s falls vs cap 2); their cap
-comparisons at 16384 are saturation-regime and are not read as
-clean cap effects. On load sensitivity: the head-to-head contrast
-is load-matched by construction (temporally adjacent paired
-blocks, \S\ref{sec:hurdle}), the diagnostics bound the load-era
-effect directly, and no post-hoc covariate adjustment is applied
-because none was pre-registered --- the pre-registered design
-choice is reported as a limitation (Section~\ref{sec:limitations}) rather than
-repaired after the fact.
-
-\subsection{The invalid variant}
-\label{sec:kv}
-A teacher-forced logits check (144 positions) found V-KV-lite's
-GGUF export functionally invalid (top-1 agreement 0.000 vs the
-base reference's 0.958; a converter tensor-layout bug, not a
-quantisation effect). Per the frozen rule it is excluded from the
-primary fit (its timings are retained and the including-fit is
-reported as sensitivity, with the same contest outcome). Its
-timings are not evidence for a functionally valid candidate.
+the run's highest-contention window (host load 8--10), a load-era
+effect noted as a caveat. At 16384, V-depth-alt and V-mixed
+saturate at cap 4 (wall-clock tokens/s fall vs cap 2); their cap
+comparisons there are saturation-regime numbers. The head-to-head
+contrast is load-matched by construction (adjacent paired blocks,
+\S\ref{sec:hurdle}); no post-hoc covariate adjustment was
+performed (none was pre-registered).
 
 \section{Discussion}
 One distinction organises everything below: \emph{selection
 regret is not model accuracy.} Section~\ref{sec:regret} shows the
 byte-greedy pick was, in hindsight, a low-regret pick; this
 section is about why that does not rehabilitate the traffic
-model. A model earns its keep by predicting --- held-out
-allocations (it did not, Section~\ref{sec:contest}) and its own
-margins (it over-predicted them, Section~\ref{sec:hurdle}).
-Nor should the parameter model be oversold in the other
-direction: absolute LOVO errors are large for \emph{both} models
-(0.28--0.74 across caps), so the accurate summary is that the
-traffic model adds no reliable advantage over a weak baseline,
-not that parameter count predicts well. A
-good pick justified by an inaccurate model is luck with a
-plausible story, and the next allocation decision made with the
-same model has no such guarantee. Four mechanisms are consistent
-with the failure, and we present them as explanations to test,
-not as rescues.
+model. A model earns its keep by predicting. It predicted
+neither held-out allocations (Section~\ref{sec:contest}) nor its
+own margins, which it overshot (Section~\ref{sec:hurdle}).
+The parameter model should not be oversold either: absolute LOVO
+errors are large for \emph{both} models (0.28--0.74 across caps),
+so the honest summary is a weak baseline and a challenger that
+adds no reliable advantage over it. A good pick justified by an
+inaccurate model is luck wearing a plausible story. Five candidate
+mechanisms follow, offered as explanations to test --- rescues,
+they are not.
 \textbf{(1) Parameters already price most of the traffic.} At
-fixed precision, weight bytes are a constant multiple of the
-weights streamed, and weights dominate traffic except at the
-longest contexts; the KV term --- the traffic model's only
-independent signal --- varies across our allocations less than
-the allocations' other properties do. Even at 16384, where KV is
+fixed precision, weight bytes scale as a constant multiple of the
+parameter count, and weights dominate traffic except at the
+longest contexts. The KV term --- the traffic model's only
+independent signal --- varies less across our allocations than
+everything else about them. Even at 16384, where KV reaches
 $\approx$56\% of modeled base traffic, the predicted advantage
-(0.673) missed the observed ratio (0.986) by a wide margin, so
-signal size alone does not explain the miss.
-\textbf{(2) Logical bytes are not measured traffic} --- in our
-judgement the primary driver of the model's inaccuracy. Cache
-residency, tensor layout, and operator fusion change actual
-memory movement; an inventory of tensor bytes sees none of these
-\citep{hape2025}. Every other mechanism below operates on top of
-this gap between the traffic the model counts and the traffic
-the hardware performs.
-\textbf{(3) Kernel efficiency is shape-dependent.} Removing
-channels or heads changes matrix shapes and attained efficiency,
-not just work volume; this is why measured-latency methods price
-whole configurations \citep{ziplm2023} and why roofline predictors
-need learned efficiency terms \citep{kernelsight2026}.
-\textbf{(4) Thread saturation on a small, oversubscribed pin.}
-With 4 threads on 2 pinned cores, scheduling and contention ---
-including other tenants' load on this shared machine --- move
-times by more than the modeled traffic differences in several
-cells. The evidence for saturation itself is narrow (two variants
-at 16384, \S\ref{sec:diagnostics}); we offer it as a contributing
-mechanism, not a demonstrated primary cause.
-The practical guidance is narrow: for a one-off pruning decision
-on a fixed runtime, measuring candidate latencies directly (as
-HAPE and ZipLM do) dominates both analytical models; between the
-two analytical models, parameter count is the cheaper and, here,
-no worse predictor.
+(0.673) missed the observed ratio (0.986) widely.
+\textbf{(2) Logical bytes are not measured
+traffic.} Cache residency, tensor layout, and operator fusion all change actual memory movement, which a tensor-byte inventory does not see \citep{hape2025}.
+\textbf{(3) Kernel efficiency is shape-dependent.} Cut channels
+or heads and matrix shapes change, attained efficiency changes
+with them --- work volume is the least of it. That is why
+measured-latency methods price whole configurations
+\citep{ziplm2023} and roofline predictors need learned
+efficiency terms \citep{kernelsight2026}.
+\textbf{(4) Pruning damages quantisation.} The variants whose
+pruned HF models are most damaged (NLL $+$4.6 to $+$5.5) are the
+ones whose GGUFs diverge most from their HF twins (KL
+2.2--5.2$\times$ BASE's). A byte-pricing model assumes the
+exported model is the pruned model; for 10 of 11 allocations
+here, it is not. Finally, \textbf{(5) Thread
+saturation on a small, oversubscribed pin.} With 4 threads on 2
+pinned cores, scheduling and contention move times by more than
+the modeled traffic differences in several cells. The evidence
+for saturation is narrow (two variants at 16384,
+\S\ref{sec:diagnostics}); a contributing mechanism is all we
+claim. Practical guidance is narrow: for a one-off pruning
+decision, measure candidate latencies directly (as HAPE and
+ZipLM do); between the two analytical models, parameter count
+is cheaper and, here, no worse.
 
 \section{Limitations}
 \label{sec:limitations}
 This is a single model family (Llama-3.2-3B), a single runtime
 (llama.cpp, Q4\_K\_M, fp16 KV), a single shared 2-core virtual
-machine with substantial tenant load variance (per-rep load is
-recorded; no covariate adjustment was pre-registered), and two
-thread caps on that pin. The 2-core pin is itself a scope limit:
-it may create an artificial bottleneck that masks traffic-model
-benefits a larger multicore setup would show, and our negative
-result should not be read as covering that regime. The full
-pre-registered specification and its amendment record are
-retained with the study records (Data availability). We measure decode speed only: model
-quality after pruning is not evaluated, so no speed--quality
-frontier is claimed. One of seven variants was export-invalid and
-excluded from the primary fit. The early-pool load-era caveat
-(Section~\ref{sec:diagnostics}) applies to the depth allocations' original cells;
-its direction is, if anything, against the depth allocations ---
-the parameter-side reference variant agrees across measurement
-eras, so the caveat does not favour the parameter model in the
-primary comparison.
-Generality beyond this regime --- other CPUs, runtimes,
-quantisation, batch sizes --- is untested, and our claim is
-bounded accordingly.
+machine with substantial tenant load variance (per-rep load recorded; no covariate adjustment pre-registered), and two
+thread caps on that pin, which may mask traffic-model
+benefits a larger multicore setup would show. Only one of eleven
+variants passes the amended export-validity check, so the allocation contest cannot be run on a D4-valid primary set; the frozen contest and hurdle are reported with that caveat. Model quality is reported only as a context axis: the frozen quality instrument is void, and its Amendment-4 first-answer re-score (Section~\ref{sec:quality}) supports no speed--quality frontier claim. The amended-timing analyses (including-fit, TOST, power, FLOP arm) remain unrun: campaign K2 was cancelled incomplete.
+The outcome is CPU time, not energy (no energy arm was possible in-environment: no RAPL exposure on this VM or on Kaggle), and decode is CPU-bound at fixed thread counts.
+The load-era caveat (§\ref{sec:diagnostics}) applies to
+the depth allocations' original cells and runs, if anything,
+against them, so it gives the parameter model no advantage in the
+primary comparison. The pre-registration history is enumerated
+here: SPEC v0.3 frozen 2026-10-23; virgin protocol
+adopted after a contamination artifact (30 pre-protocol reps
+excluded); base snapshot substituted once; V-mixed-shallow dropped before measurement; three
+restart-split paired blocks replaced wholesale; Amendments 1--3
+(2026-11-04) and Amendment 4 (2026-11-05, quality-scorer
+correction). Beyond this regime --- other CPUs, runtimes,
+quantisation, batch sizes --- generality is untested; the claim
+stops where the regime does.
 
 \section{Conclusion}
-Under a pre-registered matched-budget test, an analytical
-weight-plus-KV byte-traffic model did not improve held-out
-prediction or registered selection over parameter count for CPU
-decode of pruned Llama-3.2-3B. The open question the literature
-leaves --- when KV traffic contributes enough independent
-variation to change a pruning decision --- now has one measured
-negative point, with the traffic model's over-optimism quantified.
-The one qualification is localised, not global: excluding the
-saturated longest context, the traffic model does win the
-4-thread contest (Section~\ref{sec:contest}), so the practical
-boundary this study draws is a context boundary as much as a
-model boundary.
+The test was pre-registered and the budgets matched; under it,
+parameter count remained unbeaten on the frozen contest --- but the
+tightened evidence will not let that stand as a clean negative.
+Ten of eleven variants fail the export-validity check --- a count robust to relaxed limits (3 of 11 at most, Section~\ref{sec:validity}) --- so the allocation contest has no D4-valid primary set; the quality axis is measured only as context (BASE 85.00, the sole valid variant 55.00, under the corrected scorer). What this study does
+establish, twice over, is a boundary: an analytical weight-plus-KV
+byte-traffic model improved neither held-out prediction nor
+registered selection for CPU decode of pruned Llama-3.2-3B, and
+all but one allocation fail the export-fidelity standard under
+the joint prune-and-quantise pipeline (applied jointly
+throughout, never separated). One qualification is localised: in a post-hoc sensitivity
+excluding the saturated longest context (an exclusion requested
+in review, not pre-registered), the traffic model wins the
+4-thread contest (Section~\ref{sec:contest}). The boundary is a context boundary --- and the pipeline imposes its own: check the export first.
 
 \section*{Statement of AI Use}
 The author uses the AI tools Muse (Muse Spark 1.3, Meta) for
@@ -462,45 +645,79 @@ The author reviews, edits, and attests to the accuracy of all
 contents.
 
 \section*{Data availability}
-All timing records, the frozen analysis, the paired-block
-manifest, the pre-registered specification with its amendment
-record, and the analysis, regret, sensitivity, and bootstrap
-scripts are
-archived with the study and accompany the submission as
-supplementary material.
+All timing records, the frozen analysis, the paired-block manifest,
+the pre-registered specification with its amendment record
+(Amendments 1--4), the K1 validity and quality campaign records,
+and the analysis scripts are archived with the study and accompany
+the submission as supplementary material. Comparators: parameter count and byte
+traffic (run); FLOP count (Amendment 2 B1, unrun: campaign K2
+was cancelled incomplete); roofline bound and second runtime (omission justified, not run);
+named pruning methods (design-space coverage, not re-run);
+energy (probed, not possible in-environment).
 
 \bibliographystyle{plainnat}
 \begin{thebibliography}{9}\small
-\bibitem[Wang et~al.(2026)]{grasprune2026} Ziyang Wang,
-Jiangfeng Xiao, Chuan Xiao, Ruoxiang Li, Rui Mao, and Jianbin
-Qin. GRASPrune: Global Gating
-for Budgeted Structured Pruning of Large Language Models.
-ACL 2026 (arXiv:2604.19398).
-\bibitem[Zhao et~al.(2025)]{hape2025} Wenqian Zhao, Lancheng Zou,
-Zixiao Wang, Xufeng Yao, and Bei Yu. HAPE: Hardware-Aware LLM Pruning
-for Efficient On-Device Inference Optimization. ACM Transactions
-on Design Automation of Electronic Systems, 30(4), 2025.
-doi:10.1145/3744244.
-\bibitem[Yao et~al.(2026)]{kernelsight2026} Xiteng Yao, Taeho Kim,
-Hengzhi Pei, Xinle Liu, Kyle Ulrich, Leonard Lausen, Ashish
-Khetan, Xiang Song, George Karypis, and Martin Herbordt.
-KernelSight-LM: A
-Kernel-Level LLM Inference Simulator. arXiv:2606.28565, 2026.
-\bibitem[KVPruner(2024)]{kvpruner2024} KVPruner: Structural
-Pruning for Faster and Memory-Efficient Large Language Models.
-arXiv:2409.11057, 2024; ICASSP 2025.
-\bibitem[Pope et~al.(2023)]{pope2023} Efficiently Scaling
-Transformer Inference. MLSys, 2023.
+\bibitem[Ashkboos et~al.(2024)]{slicegpt2024} Saleh Ashkboos,
+Maximilian L. Croci, Marcelo Gennari do Nascimento, Torsten
+Hoefler, and James Hensman. SliceGPT: Compress Large Language
+Models by Deleting Rows and Columns. ICLR, 2024.
+arXiv:2401.15024.
+\bibitem[Bassi et~al.(2026)]{bassi2026} Abnash Bassi, Jaylen Wang,
+Fiodar Kazhamiaka, Daniel S. Berger, and Akshitha Sriraman.
+Store or Recompute? Characterizing the Carbon Tradeoff of KV
+Cache Retention in LLM Inference. EMC$^2$ 2026, ASPLOS.
 \bibitem[Bi et~al.(2026)]{rooflinebench2026} Zhen Bi, Xueshu Chen,
 Luoyang Sun, Yuhang Yao, Qing Shen, Jungang Lou, and Cheng Deng.
 RooflineBench: A
 Benchmarking Framework for On-Device LLMs via Roofline Analysis.
 arXiv:2602.11506, 2026.
-\bibitem[CPU Inference Study(2024)]{iiswc2024} Understanding
-Performance Implications of LLM Inference on CPUs. IISWC, 2024.
-\bibitem[Yuan et~al.(2024)]{yuan2024} LLM Inference Unveiled:
-Survey and Roofline Model Insights. arXiv, 2024.
-\bibitem[ZipLM(2023)]{ziplm2023} ZipLM: Inference-Aware
+\bibitem[Kurtic et~al.(2023)]{ziplm2023} Eldar Kurtic, Elias
+Frantar, and Dan Alistarh. ZipLM: Inference-Aware
 Structured Pruning of Language Models. NeurIPS, 2023.
+\bibitem[Lv et~al.(2025)]{kvpruner2024} Bo Lv, Quan Zhou, Xuanang
+Ding, Yan Wang, and Zeming Ma. KVPruner: Structural
+Pruning for Faster and Memory-Efficient Large Language Models.
+arXiv:2409.11057, 2024; ICASSP 2025.
+\bibitem[Ma et~al.(2023)]{llmpruner2023} Xinyin Ma, Gongfan Fang,
+and Xinchao Wang. LLM-Pruner: On the Structural Pruning of Large
+Language Models. NeurIPS, 2023. arXiv:2305.11627.
+\bibitem[Na et~al.(2024)]{iiswc2024} Seonjin Na, Geonhwa Jeong,
+Byung Hoon Ahn, Jeffrey Young, Tushar Krishna, and Hyesoon Kim.
+Understanding Performance Implications of LLM Inference on CPUs.
+IISWC, 2024, pp. 169--180.
+\bibitem[Parihar(2026)]{parihar2026} Raj Parihar. IEI: A Composite
+Infrastructure Efficiency Index for GPU Inference. EMC$^2$ 2026,
+ASPLOS.
+\bibitem[Pope et~al.(2023)]{pope2023} Reiner Pope, Sholto Douglas,
+Aakanksha Chowdhery, Jacob Devlin, James Bradbury, Anselm
+Levskaya, Jonathan Heek, Kefan Xiao, Shivani Agrawal, and Jeff
+Dean. Efficiently Scaling Transformer Inference. MLSys, 2023,
+pp. 606--624.
+\bibitem[Qi et~al.(2026)]{qi2026} Xiangbo Qi, Chaoyi Jiang, and
+Murali Annavaram. Fast NF4 Dequantization Kernels for Large
+Language Model Inference. EMC$^2$ 2026, ASPLOS.
+arXiv:2604.02556.
+\bibitem[Salmani \& Soloveychik(2025)]{salmani2025} Mahsa Salmani
+and Ilya Soloveychik. LLM Inference Acceleration via Efficient
+Operation Fusion. EMC$^2$ 2025, HPCA.
+\bibitem[Sun et~al.(2024)]{wanda2024} Mingjie Sun, Zhuang Liu,
+Anna Bair, and J. Zico Kolter. A Simple and Effective Pruning
+Approach for Large Language Models. ICLR, 2024.
+arXiv:2306.11695.
+\bibitem[Wang et~al.(2026)]{grasprune2026} Ziyang Wang,
+Jiangfeng Xiao, Chuan Xiao, Ruoxiang Li, Rui Mao, and Jianbin
+Qin. GRASPrune: Global Gating
+for Budgeted Structured Pruning of Large Language Models.
+ACL 2026 (arXiv:2604.19398).
+\bibitem[Yao et~al.(2026)]{kernelsight2026} Xiteng Yao, Taeho Kim,
+Hengzhi Pei, Xinle Liu, Kyle Ulrich, Leonard Lausen, Ashish
+Khetan, Xiang Song, George Karypis, and Martin Herbordt.
+KernelSight-LM: A
+Kernel-Level LLM Inference Simulator. arXiv:2606.28565, 2026.
+\bibitem[Zhao et~al.(2025)]{hape2025} Wenqian Zhao, Lancheng Zou,
+Zixiao Wang, Xufeng Yao, and Bei Yu. HAPE: Hardware-Aware LLM Pruning
+for Efficient On-Device Inference Optimization. ACM Transactions
+on Design Automation of Electronic Systems, 30(4), 2025.
+doi:10.1145/3744244.
 \end{thebibliography}
 \end{document}
